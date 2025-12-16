@@ -32,12 +32,33 @@ s3 = boto3.client(
     region_name=AWS_DEFAULT_REGION
 )
 
-# petit ls:
-response = s3.list_objects_v2(Bucket=S3_BUCKET)
-if "Contents" in response:
-    for obj in response["Contents"]:
-        print(obj["Key"])
-else:
-    print("Bucket is empty or permissions issue")
+#"ls" function to check what's in the bucket:
+def s3_ls(s3_bucket):
+    response = s3.list_objects_v2(Bucket=s3_bucket)
+    if "Contents" in response:
+        for obj in response["Contents"]:
+            print(obj["Key"])
+    else:
+        print("Bucket is empty or permissions issue")
 
 print(S3_BUCKET)
+s3_ls(S3_BUCKET)
+
+# Before sending to s3 formatting the csv file into the parquet format
+# for better performances, explicit types and easier manipulation
+
+df = pd.read_csv("data/prix-des-carburants-1.csv", sep=';', engine='python', encoding='utf-8')
+print(df.shape)
+print(df.head())
+
+df.to_parquet(
+    "data.parquet",
+    engine="pyarrow",
+    compression="snappy" #recommended for s3
+)
+
+table = pd.read_parquet("data.parquet")
+print(table.head())
+
+s3.upload_file('data/test.csv', S3_BUCKET, 'test.csv')
+s3_ls(S3_BUCKET)
