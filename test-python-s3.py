@@ -16,8 +16,8 @@ The goal of this code is to :
 """
 ##########
 
-csv_headerline = "id;latitude;longitude;Code postal;pop;Adresse;Ville;services;prix;rupture;horaires;geom;Prix Gazole mis à jour le;Prix Gazole;Prix SP95 mis à jour le;Prix SP95;Prix E85 mis à jour le;Prix E85;Prix GPLc mis à jour le;Prix GPLc;Prix E10 mis à jour le;Prix E10;Prix SP98 mis à jour le;Prix SP98;Début rupture e10 (si temporaire);Type rupture e10;Début rupture sp98 (si temporaire);Type rupture sp98;Début rupture sp95 (si temporaire);Type rupture sp95;Début rupture e85 (si temporaire);Type rupture e85;Début rupture GPLc (si temporaire);Type rupture GPLc;Début rupture gazole (si temporaire);Type rupture gazole;Carburants disponibles;Carburants indisponibles;Carburants en rupture temporaire;Carburants en rupture definitive;Automate 24-24 (oui/non);Services proposés;Département;code_departement;Région;code_region;horaires détaillés"
-
+# csv_headerline = "id;latitude;longitude;Code postal;pop;Adresse;Ville;services;prix;rupture;horaires;geom;Prix Gazole mis à jour le;Prix Gazole;Prix SP95 mis à jour le;Prix SP95;Prix E85 mis à jour le;Prix E85;Prix GPLc mis à jour le;Prix GPLc;Prix E10 mis à jour le;Prix E10;Prix SP98 mis à jour le;Prix SP98;Début rupture e10 (si temporaire);Type rupture e10;Début rupture sp98 (si temporaire);Type rupture sp98;Début rupture sp95 (si temporaire);Type rupture sp95;Début rupture e85 (si temporaire);Type rupture e85;Début rupture GPLc (si temporaire);Type rupture GPLc;Début rupture gazole (si temporaire);Type rupture gazole;Carburants disponibles;Carburants indisponibles;Carburants en rupture temporaire;Carburants en rupture definitive;Automate 24-24 (oui/non);Services proposés;Département;code_departement;Région;code_region;horaires détaillés"
+csv_headerline = "id;Code postal;pop;adresse;ville;horaires;rupture;fermeture;geom;Mise à jour des prix;prix_id;Prix;Carburant;com_arm_code;Code Officiel Région;Région;Numéro Département;Département;Code Officiel EPCI;Nom Officiel EPCI;Commune / Arrondissement Municipal;Services proposés;Carburant en rupture;Début rupture;Fin rupture;Automate 24-24 (oui/non)"
 
 load_dotenv()
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -47,18 +47,22 @@ s3_ls(S3_BUCKET)
 # Before sending to s3 formatting the csv file into the parquet format
 # for better performances, explicit types and easier manipulation
 
-df = pd.read_csv("data/prix-des-carburants-1.csv", sep=';', engine='python', encoding='utf-8')
+df = pd.read_csv("data/csv/prix-carburants-quotidien.csv", sep=';', engine='python', encoding='utf-8')
 print(df.shape)
 print(df.head())
 
 df.to_parquet(
-    "data.parquet",
+    "data/parquet/data.parquet",
     engine="pyarrow",
     compression="snappy" #recommended for s3
 )
 
-table = pd.read_parquet("data.parquet")
+table = pd.read_parquet("data/parquet/data.parquet")
+print(table.shape)
 print(table.head())
 
-s3.upload_file('data/test.csv', S3_BUCKET, 'test.csv')
+s3.upload_file('data/csv/test.csv', S3_BUCKET, 'test.csv')
+s3_ls(S3_BUCKET)
+
+s3.delete_object(Bucket=S3_BUCKET, Key="test.csv")
 s3_ls(S3_BUCKET)
