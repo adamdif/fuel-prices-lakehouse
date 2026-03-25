@@ -64,5 +64,5 @@ print(table.head())
 s3.upload_file('data/csv/test.csv', S3_BUCKET, 'test.csv')
 s3_ls(S3_BUCKET)
 
-s3.delete_object(Bucket=S3_BUCKET, Key="test.csv")
+s3.delete_object(Bucket=f"{S3_BUCKET}/fuel-prices/bronze", Key="test.csv")
 s3_ls(S3_BUCKET)
