@@ -3,3 +3,4 @@ pyarrow
 boto3
 python-dotenv
 requests
+s3fs
