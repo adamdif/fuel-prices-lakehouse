@@ -147,6 +147,12 @@ def main():
     exclude_for_hash = {"ingestion_date", "ingestion_ts", "record_hash"}
     df["record_hash"] = compute_record_hash(df, exclude_cols=exclude_for_hash)
 
+    # Delete extra rows with same record hash
+    rows_before_dedup = len(df)
+    df = df.drop_duplicates(subset=["record_hash"]).copy()
+    rows_after_dedup = len(df)
+    duplicates_removed = rows_before_dedup - rows_after_dedup
+
     # Write parquet locally
     os.makedirs("data/silver", exist_ok=True)
     local_parquet = f"data/silver/silver-ingestion_date={ingestion_date}.parquet"
@@ -175,7 +181,9 @@ def main():
             "s3_bucket": bucket,
             "s3_parquet_key": silver_parquet_key,
         },
-        "rows": int(df.shape[0]),
+        "rows_before_dedup": int(rows_before_dedup),
+        "rows_after_dedup": int(rows_after_dedup),
+        "duplicates_removed": int(duplicates_removed),
         "columns": list(df.columns),
     }
 
@@ -190,6 +198,8 @@ def main():
     print("S3 parquet:", f"s3://{bucket}/{silver_parquet_key}")
     print("S3 metadata:", f"s3://{bucket}/{silver_metadata_key}")
     print("Rows:", df.shape[0], "Cols:", df.shape[1])
+    print("Duplicates removed:", duplicates_removed)
+    print("Rows after dedup:", rows_after_dedup, "Cols:", df.shape[1])
 
 
 if __name__ == "__main__":
