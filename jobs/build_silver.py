@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from io import BytesIO
 from datetime import date, datetime, timezone
 import boto3
+import unicodedata
 
 # ===============================================
 
@@ -20,6 +21,9 @@ def to_snake_case(name: str) -> str:
     """
     name = name.strip()
     name = name.replace("’", "'")
+    # remove accents
+    name = unicodedata.normalize("NFKD", name)
+    name = "".join(ch for ch in name if not unicodedata.combining(ch))
     name = re.sub(r"[^\w]+", "_", name, flags=re.UNICODE)
     name = re.sub(r"_+", "_", name)
     return name.strip("_").lower()
@@ -200,7 +204,7 @@ def main():
     print("Rows:", df.shape[0], "Cols:", df.shape[1])
     print("Duplicates removed:", duplicates_removed)
     print("Rows after dedup:", rows_after_dedup, "Cols:", df.shape[1])
-
+    # print(df.columns.tolist())
 
 if __name__ == "__main__":
     main()
